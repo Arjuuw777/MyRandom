@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Randomly! — Your Random Generator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background:
+        radial-gradient(circle at top left, #302b63 0%, transparent 35%),
+        radial-gradient(circle at bottom right, #24243e 0%, transparent 40%),
+        #09090f;
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* NAVBAR */
+
+    nav {
+      width: 100%;
+      padding: 20px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(9,9,15,0.65);
+      backdrop-filter: blur(15px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .logo span {
+      color: #8b5cf6;
+    }
+
+    .nav-tag {
+      color: #aaa;
+      font-size: 13px;
+    }
+
+    /* HERO */
+
+    .hero {
+      text-align: center;
+      padding: 65px 20px 30px;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 8vw, 75px);
+      line-height: 1;
+      margin-bottom: 18px;
+      background: linear-gradient(90deg, #fff, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: #aaa;
+      font-size: 17px;
+      max-width: 600px;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    /* MAIN */
+
+    main {
+      width: min(1100px, 92%);
+      margin: 35px auto 70px;
+    }
+
+    .generator {
+      background: rgba(255,255,255,0.055);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 28px;
+      padding: 30px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 25px 80px rgba(0,0,0,0.35);
+    }
+
+    /* CATEGORY BUTTONS */
+
+    .categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .category {
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      padding: 15px 10px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: 0.25s;
+      font-size: 14px;
+    }
+
+    .category:hover {
+      transform: translateY(-3px);
+      background: rgba(139,92,246,0.18);
+      border-color: #8b5cf6;
+    }
+
+    .category.active {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border-color: transparent;
+      box-shadow: 0 8px 25px rgba(124,58,237,0.3);
+    }
+
+    .category .icon {
+      display: block;
+      font-size: 25px;
+      margin-bottom: 7px;
+    }
+
+    /* RESULT */
+
+    .result-box {
+      min-height: 260px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-radius: 22px;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(139,92,246,0.12),
+          rgba(59,130,246,0.08)
+        );
+      border: 1px solid rgba(255,255,255,0.08);
+      padding: 35px;
+      margin-bottom: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .result-box::before {
+      content: "";
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: rgba(139,92,246,0.12);
+      filter: blur(60px);
+      top: -100px;
+      right: -70px;
+    }
+
+    .result-content {
+      position: relative;
+      z-index: 2;
+    }
+
+    .result-icon {
+      font-size: 55px;
+      margin-bottom: 15px;
+    }
+
+    .result-label {
+      color: #9ca3af;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .result-text {
+      font-size: clamp(22px, 4vw, 35px);
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .result-description {
+      color: #aaa;
+      margin-top: 12px;
+      font-size: 15px;
+    }
+
+    /* BUTTONS */
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .random-btn {
+      border: none;
+      background: linear-gradient(135deg, #8b5cf6, #4f46e5);
+      color: white;
+      padding: 17px 35px;
+      border-radius: 14px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.25s;
+      box-shadow: 0 10px 30px rgba(99,102,241,0.3);
+    }
+
+    .random-btn:hover {
+      transform: translateY(-3px) scale(1.02);
+      box-shadow: 0 15px 35px rgba(99,102,241,0.45);
+    }
+
+    .secondary-btn {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      padding: 17px 25px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.25s;
+    }
+
+    .secondary-btn:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    /* QUICK SECTION */
+
+    .quick-title {
+      text-align: center;
+      margin: 60px 0 20px;
+      font-size: 25px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+
+    .quick-card {
+      padding: 23px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.045);
+      border: 1px solid rgba(255,255,255,0.08);
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(139,92,246,0.5);
+      background: rgba(139,92,246,0.08);
+    }
+
+    .quick-card h3 {
+      margin-bottom: 7px;
+    }
+
+    .quick-card p {
+      color: #999;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* FOOTER */
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: #777;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 13px;
+    }
+
+    /* ANIMATION */
+
+    .animate {
+      animation: pop 0.45s ease;
+    }
+
+    @keyframes pop {
+      0% {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+
+      70% {
+        transform: scale(1.04);
+      }
+
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 600px) {
+
+      nav {
+        padding: 17px 5%;
+      }
+
+      .nav-tag {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 45px;
+      }
+
+      .generator {
+        padding: 18px;
+      }
+
+      .result-box {
+        min-height: 230px;
+        padding: 25px 15px;
+      }
+
+      .random-btn,
+      .secondary-btn {
+        width: 100%;
+      }
+
+      .categories {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVIGATION -->
+
+  <nav>
+    <div class="logo">Random<span>ly!</span> 🎲</div>
+    <div class="nav-tag">Because boring is overrated.</div>
+  </nav>
+
+
+  <!-- HERO -->
+
+  <section class="hero">
+
+    <h1>What should you do?</h1>
+
+    <p>
+      Can't decide? Let Randomly choose something for you.
+      Pick a category or hit Surprise Me.
+    </p>
+
+  </section>
+
+
+  <!-- MAIN -->
+
+  <main>
+
+    <section class="generator">
+
+      <!-- CATEGORY BUTTONS -->
+
+      <div class="categories">
+
+        <button class="category active" data-category="surprise">
+          <span class="icon">✨</span>
+          Surprise Me
+        </button>
+
+        <button class="category" data-category="watch">
+          <span class="icon">🎬</span>
+          Watch
+        </button>
+
+        <button class="category" data-category="game">
+          <span class="icon">🎮</span>
+          Games
+        </button>
+
+        <button class="category" data-category="food">
+          <span class="icon">🍕</span>
+          Food
+        </button>
+
+        <button class="category" data-category="question">
+          <span class="icon">🤔</span>
+          Questions
+        </button>
+
+        <button class="category" data-category="challenge">
+          <span class="icon">🔥</span>
+          Challenges
+        </button>
+
+        <button class="category" data-category="project">
+          <span class="icon">💡</span>
+          Projects
+        </button>
+
+        <button class="category" data-category="number">
+          <span class="icon">🎯</span>
+          Number
+        </button>
+
+      </div>
+
+
+      <!-- RESULT -->
+
+      <div class="result-box" id="resultBox">
+
+        <div class="result-content" id="resultContent">
+
+          <div class="result-icon">🎲</div>
+
+          <div class="result-label">
+            Ready?
+          </div>
+
+          <div class="result-text">
+            Let randomness decide.
+          </div>
+
+          <div class="result-description">
+            Choose a category and press the button.
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- CONTROLS -->
+
+      <div class="controls">
+
+        <button class="random-btn" id="randomBtn">
+          ✨ Generate Random
+        </button>
+
+        <button class="secondary-btn" id="copyBtn">
+          📋 Copy Result
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- QUICK GENERATORS -->
+
+    <h2 class="quick-title">
+      ⚡ Quick Generators
+    </h2>
+
+    <div class="quick-grid">
+
+      <div class="quick-card" data-quick="coin">
+        <h3>🪙 Coin Flip</h3>
+        <p>Can't decide between two options? Let the coin choose.</p>
+      </div>
+
+      <div class="quick-card" data-quick="dice">
+        <h3>🎲 Roll a Dice</h3>
+        <p>Roll a virtual six-sided dice.</p>
+      </div>
+
+      <div class="quick-card" data-quick="color">
+        <h3>🎨 Random Color</h3>
+        <p>Generate a random color and its HEX code.</p>
+      </div>
+
+      <div class="quick-card" data-quick="number">
+        <h3>🔢 Random Number</h3>
+        <p>Generate a random number from 1 to 100.</p>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- FOOTER -->
+
+  <footer>
+    Made with 🎲 and a little randomness.
+    <br><br>
+    © 2026 Randomly!
+  </footer>
+
+
+  <script>
+
+    /* =========================
+       RANDOM DATA
+    ========================= */
+
+    const data = {
+
+      watch: [
+        "Watch a movie you've never heard of.",
+        "Watch the first episode of a random anime.",
+        "Watch a comedy movie.",
+        "Watch a classic movie from before 2000.",
+        "Watch a movie chosen by a friend.",
+        "Watch a documentary about something you know nothing about.",
+        "Watch a completely random YouTube video.",
+        "Rewatch your favorite movie.",
+        "Watch a mystery/thriller.",
+        "Watch an episode of a series you abandoned."
+      ],
+
+      game: [
+        "Play a game you've never played before.",
+        "Play your favorite game for 30 minutes.",
+        "Try a horror game.",
+        "Play a racing game.",
+        "Play a multiplayer game with a friend.",
+        "Try winning a game without using your usual strategy.",
+        "Play a retro game.",
+        "Try a puzzle game.",
+        "Play a game chosen by your friend.",
+        "Try a completely random mobile game."
+      ],
+
+      food: [
+        "🍕 Pizza",
+        "🍔 Burger",
+        "🍜 Noodles",
+        "🌮 Tacos",
+        "🍗 Fried Chicken",
+        "🥪 Sandwich",
+        "🍝 Pasta",
+        "🍛 Biryani",
+        "🥞 Pancakes",
+        "🍦 Ice Cream",
+        "🍟 French Fries",
+        "🥗 Try something healthy today!"
+      ],
+
+      question: [
+        "If you could travel anywhere tomorrow, where would you go?",
+        "What fictional world would you want to live in?",
+        "What is one skill you'd love to master?",
+        "If you could meet any fictional character, who would it be?",
+        "What movie could you watch again and again?",
+        "If you had unlimited money for one day, what would you do?",
+        "What is the weirdest food combination you've tried?",
+        "Would you rather explore space or the deep ocean?",
+        "What game would you play if you could only choose one?",
+        "What is something you've always wanted to try?"
+      ],
+
+      challenge: [
+        "Do 20 jumping jacks.",
+        "Go 10 minutes without checking your phone.",
+        "Learn 5 words in a new language.",
+        "Draw something in 60 seconds.",
+        "Take a photo of something interesting around you.",
+        "Compliment someone genuinely.",
+        "Try writing with your non-dominant hand.",
+        "Clean your room for exactly 5 minutes.",
+        "Make someone laugh today.",
+        "Learn one interesting fact and tell a friend."
+      ],
+
+      project: [
+        "Build a personal portfolio website.",
+        "Create a weather app.",
+        "Build a random quote generator.",
+        "Create a simple calculator.",
+        "Build a quiz game.",
+        "Create a to-do list.",
+        "Build a countdown timer.",
+        "Create a digital dice game.",
+        "Build a movie recommendation website.",
+        "Create a simple expense tracker.",
+        "Build a reaction-time game.",
+        "Create a random name generator."
+      ]
+
+    };
+
+
+    /* =========================
+       ELEMENTS
+    ========================= */
+
+    const randomBtn = document.getElementById("randomBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const resultBox = document.getElementById("resultBox");
+    const resultContent = document.getElementById("resultContent");
+
+    const categories = document.querySelectorAll(".category");
+    const quickCards = document.querySelectorAll(".quick-card");
+
+    let currentCategory = "surprise";
+    let currentResult = "";
+
+
+    /* =========================
+       CATEGORY ICONS
+    ========================= */
+
+    const icons = {
+      watch: "🎬",
+      game: "🎮",
+      food: "🍕",
+      question: "🤔",
+      challenge: "🔥",
+      project: "💡",
+      number: "🎯",
+      surprise: "✨"
+    };
+
+
+    /* =========================
+       RANDOM FUNCTION
+    ========================= */
+
+    function randomItem(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+
+    /* =========================
+       SURPRISE MODE
+    ========================= */
+
+    function surpriseGenerator() {
+
+      const available = [
+        "watch",
+        "game",
+        "food",
+        "question",
+        "challenge",
+        "project",
+        "number"
+      ];
+
+      const randomCategory = randomItem(available);
+
+      return generateCategory(randomCategory, true);
+    }
+
+
+    /* =========================
+       CATEGORY GENERATOR
+    ========================= */
+
+    function generateCategory(category, surprise = false) {
+
+      let result;
+      let label;
+
+      if (category === "number") {
+
+        result = Math.floor(Math.random() * 100) + 1;
+        label = "Your random number";
+
+      } else {
+
+        result = randomItem(data[category]);
+
+        const labels = {
+          watch: "You should watch...",
+          game: "You should play...",
+          food: "You should eat...",
+          question: "Random question",
+          challenge: "Your challenge",
+          project: "Project idea"
+        };
+
+        label = labels[category];
+
+      }
+
+      showResult(
+        icons[category],
+        label,
+        result,
+        surprise ? "Surprise category: " + category : ""
+      );
+
+      return result;
+    }
+
+
+    /* =========================
+       SHOW RESULT
+    ========================= */
+
+    function showResult(icon, label, text, description = "") {
+
+      currentResult = text;
+
+      resultContent.classList.remove("animate");
+
+      // Restart animation
+      void resultContent.offsetWidth;
+
+      resultContent.classList.add("animate");
+
+      resultContent.innerHTML = `
+
+        <div class="result-icon">
+          ${icon}
+        </div>
+
+        <div class="result-label">
+          ${label}
+        </div>
+
+        <div class="result-text">
+          ${text}
+        </div>
+
+        ${
+          description
+          ? `<div class="result-description">${description}</div>`
+          : ""
+        }
+
+      `;
+    }
+
+
+    /* =========================
+       MAIN RANDOM BUTTON
+    ========================= */
+
+    randomBtn.addEventListener("click", () => {
+
+      randomBtn.classList.add("shake");
+
+      setTimeout(() => {
+        randomBtn.classList.remove("shake");
+      }, 400);
+
+      if (currentCategory === "surprise") {
+
+        surpriseGenerator();
+
+      } else {
+
+        generateCategory(currentCategory);
+
+      }
+
+    });
+
+
+    /* =========================
+       CATEGORY SELECTION
+    ========================= */
+
+    categories.forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        categories.forEach(btn => {
+          btn.classList.remove("active");
+        });
+
+        button.classList.add("active");
+
+        currentCategory = button.dataset.category;
+
+        // Automatically generate
+        if (currentCategory === "surprise") {
+          surpriseGenerator();
+        } else {
+          generateCategory(currentCategory);
+        }
+
+      });
+
+    });
+
+
+    /* =========================
+       COPY RESULT
+    ========================= */
+
+    copyBtn.addEventListener("click", async () => {
+
+      if (!currentResult) {
+        return;
+      }
+
+      try {
+
+        await navigator.clipboard.writeText(currentResult);
+
+        copyBtn.textContent = "✅ Copied!";
+
+        setTimeout(() => {
+          copyBtn.textContent = "📋 Copy Result";
+        }, 1500);
+
+      } catch (error) {
+
+        alert("Copy failed. Try selecting the result manually.");
+
+      }
+
+    });
+
+
+    /* =========================
+       QUICK GENERATORS
+    ========================= */
+
+    quickCards.forEach(card => {
+
+      card.addEventListener("click", () => {
+
+        const type = card.dataset.quick;
+
+        if (type === "coin") {
+
+          const result = Math.random() < 0.5
+            ? "Heads"
+            : "Tails";
+
+          showResult(
+            "🪙",
+            "Coin Flip",
+            result
+          );
+
+        }
+
+
+        else if (type === "dice") {
+
+          const result = Math.floor(Math.random() * 6) + 1;
+
+          showResult(
+            "🎲",
+            "Dice Roll",
+            result
+          );
+
+        }
+
+
+        else if (type === "color") {
+
+          const letters = "0123456789ABCDEF";
+
+          let color = "#";
+
+          for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+          }
+
+          showResult(
+            "🎨",
+            "Random Color",
+            color,
+            "HEX color code"
+          );
+
+        }
+
+
+        else if (type === "number") {
+
+          const result = Math.floor(Math.random() * 100) + 1;
+
+          showResult(
+            "🔢",
+            "Random Number",
+            result,
+            "Between 1 and 100"
+          );
+
+        }
+
+        // Scroll to result on mobile
+        resultBox.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+      });
+
+    });
+
+  </script>
+
+</body>
+</html>
